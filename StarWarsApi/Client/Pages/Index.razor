@@ -1,0 +1,40 @@
+﻿@page "/"
+@using StarWarsApi.Client.Services;
+@using StarWarsApi.Shared.PlanetModels;
+@inject PlanetService planetService;
+<PageTitle>Star Wars Planets</PageTitle>
+
+<h1>Here is a list of planets from the Star Wars Api!</h1>
+<div>
+    @if (!string.IsNullOrWhiteSpace(Error))
+    {
+        <h3>Error</h3>
+        <p>@Error</p>
+    }
+    @if (Planets.Any())
+    {
+        var count = 1;
+        @foreach (var planet in Planets)
+        {
+            <p>@(count++). @planet.Name)</p>
+        }
+    }
+</div>
+@code {
+    private List<StarWarsPlanet> Planets { get; set; } = new();
+    public string Error { get; set; } = "";
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var result = await planetService.GetPlanets();
+            if (!result.Success)
+            {
+                Error = result.Message;
+                return;
+            }
+            Planets.AddRange(result.Planets);
+            StateHasChanged();
+        }
+    }
+}
